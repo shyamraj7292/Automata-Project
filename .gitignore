@@ -1,7 +1,7 @@
 # Rust / Cargo build output
 /target/
 
-# Compiler intermediate output files
+# Compiler intermediate and runtime output files
 token.txt
 syntaxtree.txt
 symtable.txt
@@ -9,6 +9,8 @@ data.txt
 code.txt
 opt_code.txt
 mips_out.asm
+build_errors.txt
+run_out.txt
 
 # Editor / OS artefacts
 .DS_Store
