@@ -1,9 +1,17 @@
 [package]
 name = "automata-mini-compiler"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
-description = "A mini-compiler built in Rust — lexer, parser, codegen, optimizer, and MIPS backend"
+description = "A mini-compiler written in Rust — full pipeline from lexing to MIPS assembly generation"
+authors = ["shyamraj7292"]
+license = "MIT"
+readme = "README.md"
 
 [[bin]]
 name = "compiler"
 path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

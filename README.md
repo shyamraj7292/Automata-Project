@@ -1,10 +1,12 @@
-# 🦀 Automata Mini-Compiler
+# Automata Mini-Compiler
 
-A mini-compiler built entirely in **Rust**, developed as a compiler design course project. It implements a full compilation pipeline — from lexical analysis all the way to MIPS assembly code generation — with an integrated optimizer pass.
+A mini-compiler written entirely in **Rust**, built as a compiler design course project.
+It implements a complete compilation pipeline — from lexical analysis all the way through
+to MIPS assembly output — with an optional optimisation pass.
 
 ---
 
-## 📚 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
@@ -22,20 +24,22 @@ A mini-compiler built entirely in **Rust**, developed as a compiler design cours
 
 ## Overview
 
-This project is a from-scratch mini-compiler implemented in **Rust**. It takes a custom source language as input and produces MIPS assembly output. The compiler is split across clean, well-separated modules covering each phase of compilation.
+This project is a from-scratch mini-compiler targeting a simple custom source language,
+producing MIPS assembly as output. Every phase of compilation — tokenising, parsing,
+symbol-table management, IR generation, optimisation, and MIPS emission — lives in its
+own focused Rust module.
 
 ---
 
 ## Features
 
-- ✅ Lexical analysis (tokenizer / lexer)
-- ✅ Recursive-descent parser
-- ✅ Symbol table with scope management
-- ✅ Intermediate code generation
-- ✅ Optimization pass (constant folding, dead code elimination)
-- ✅ MIPS assembly code generation
-- ✅ Error handling with descriptive messages
-- ✅ Full unit test coverage
+- Lexical analysis (hand-written tokeniser)
+- Recursive-descent parser with full grammar coverage
+- Scoped symbol table for variables and functions
+- Intermediate representation (IR) code generation
+- Constant-folding and dead-code-elimination optimisation pass
+- MIPS assembly backend with basic register allocation
+- Descriptive parse / codegen error reporting
 
 ---
 
@@ -44,16 +48,21 @@ This project is a from-scratch mini-compiler implemented in **Rust**. It takes a
 ```
 automata-mini-compiler/
 ├── src/
-│   ├── main.rs           # Entry point
-│   ├── lexer.rs          # Tokenizer / Lexer
-│   ├── parser.rs         # Recursive-descent parser
-│   ├── symtable.rs       # Symbol table
-│   ├── gencode.rs        # Intermediate code generation
-│   ├── optimize.rs       # Optimization pass
-│   ├── mips.rs           # MIPS backend / code emitter
-│   └── error_handle.rs   # Error handling utilities
+│   ├── main.rs        # Entry point — wires the pipeline together
+│   ├── token.rs       # TokenTag enum + Token struct
+│   ├── lexer.rs       # Tokeniser / lexer
+│   ├── parser.rs      # Recursive-descent parser → syntaxtree.txt
+│   ├── symtable.rs    # Symbol table (VarTable + FunTable) with scopes
+│   ├── gencode.rs     # IR code generator → data.txt + code.txt
+│   ├── optimize.rs    # Constant folding + dead-code elimination
+│   └── mips.rs        # MIPS assembly emitter → mips_out.asm
 ├── tests/
 │   └── integration_tests.rs
+├── tools/
+│   └── test.sh        # Batch test runner (uses MARS simulator)
+├── test/
+│   ├── in/            # Sample source files
+│   └── out/           # Expected MIPS outputs
 ├── Cargo.toml
 ├── grammars.pdf
 └── README.md
@@ -63,7 +72,8 @@ automata-mini-compiler/
 
 ## Grammar
 
-The formal grammar for the supported source language is documented in [`grammars.pdf`](./grammars.pdf).
+The formal grammar for the supported source language is documented in
+[`grammars.pdf`](./grammars.pdf).
 
 ---
 
@@ -71,10 +81,10 @@ The formal grammar for the supported source language is documented in [`grammars
 
 ### Prerequisites
 
-- [Rust](https://www.rust-lang.org/tools/install) (stable toolchain, 1.75+)
-- Cargo (bundled with the Rust installation)
+- [Rust](https://www.rust-lang.org/tools/install) stable (1.75+)
+- Cargo (bundled with Rust)
 
-Install Rust via `rustup`:
+Install via `rustup`:
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -84,24 +94,31 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ```bash
 # Clone the repository
-git clone https://github.com/compiler-design-projects/minicompiler.git
-cd minicompiler
+git clone https://github.com/shyamraj7292/Automata-Project.git
+cd Automata-Project
 
-# Build in release mode
+# Debug build
+cargo build
+
+# Release build (optimised)
 cargo build --release
 ```
 
 ### Running
 
 ```bash
-# Compile a source file
+# Compile a source file (no optimisation)
 cargo run --release -- <source_file>
 
-# Example
-cargo run --release -- tests/sample.src
+# Compile with the optimisation pass enabled
+cargo run --release -- <source_file> opt
+
+# Examples
+cargo run --release -- test/in/fact.txt
+cargo run --release -- test/in/merge_sort.txt opt
 ```
 
-The compiled MIPS assembly will be printed to stdout (or written to an output file depending on flags).
+After a successful run the MIPS assembly is written to `mips_out.asm`.
 
 ### Running Tests
 
@@ -113,39 +130,43 @@ cargo test
 
 ## Pipeline
 
-The compilation pipeline proceeds through the following stages:
-
 ```
-Source Code
+Source File
     │
     ▼
-┌─────────┐
-│  Lexer  │  ── Tokenizes raw input into a stream of tokens
-└────┬────┘
+┌──────────┐
+│  Lexer   │  token.rs / lexer.rs
+│          │  Converts raw source into a token stream
+└────┬─────┘
      │
      ▼
-┌─────────┐
-│ Parser  │  ── Builds an AST via recursive descent
-└────┬────┘
+┌──────────┐
+│  Parser  │  parser.rs
+│          │  Recursive-descent; validates structure; writes syntaxtree.txt
+└────┬─────┘
      │
      ▼
-┌──────────────┐
-│ Symbol Table │  ── Tracks identifiers, types, and scopes
-└──────┬───────┘
+┌────────────────┐
+│  Symbol Table  │  symtable.rs
+│                │  Scoped variable + function tables
+└──────┬─────────┘
        │
        ▼
 ┌──────────────────┐
-│ Code Generation  │  ── Emits intermediate representation (IR)
+│  Code Generation │  gencode.rs
+│                  │  Emits three-address IR to code.txt / data.txt
 └───────┬──────────┘
         │
         ▼
 ┌────────────┐
-│  Optimize  │  ── Applies IR-level optimizations
+│  Optimiser │  optimize.rs
+│            │  Constant folding + dead-code elimination → opt_code.txt
 └─────┬──────┘
       │
       ▼
 ┌──────────────┐
-│ MIPS Backend │  ── Translates IR to MIPS assembly
+│ MIPS Backend │  mips.rs
+│              │  Register allocation + MIPS assembly → mips_out.asm
 └──────────────┘
 ```
 

@@ -1,8 +1,7 @@
 # Rust / Cargo build output
 /target/
-Cargo.lock
 
-# Compiler output files
+# Compiler intermediate output files
 token.txt
 syntaxtree.txt
 symtable.txt
@@ -11,7 +10,7 @@ code.txt
 opt_code.txt
 mips_out.asm
 
-# Old C++ build artifacts
-*.o
-*.out
-compiler
+# Editor / OS artefacts
+.DS_Store
+Thumbs.db
+*.swp
