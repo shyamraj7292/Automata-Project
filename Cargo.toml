@@ -1,0 +1,9 @@
+[package]
+name = "automata-mini-compiler"
+version = "0.1.0"
+edition = "2021"
+description = "A mini-compiler built in Rust — lexer, parser, codegen, optimizer, and MIPS backend"
+
+[[bin]]
+name = "compiler"
+path = "src/main.rs"
